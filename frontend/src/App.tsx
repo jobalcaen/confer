@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import {
-  BrowserRouter as Router,
+  BrowserRouter,
   Switch,
   Route,
   Link
@@ -9,14 +9,16 @@ import {
 import Home from './pages/Home/Home';
 import ConferenceRoom from './pages/ConferenceRoom/ConferenceRoom';
 
+// https://medium.com/the-andela-way/understanding-the-fundamentals-of-routing-in-react-b29f806b157e
+
 const App: React.FC = () => {
   return (
-    <Router>
+    <BrowserRouter>
       <Switch>
           <Route exact path="/" component={Home} />
           <Route path="/:roomname" component={ConferenceRoom} />
       </Switch>
-    </Router>
+    </BrowserRouter>
   )
 }
 

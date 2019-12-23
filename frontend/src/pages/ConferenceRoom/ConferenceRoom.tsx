@@ -3,10 +3,30 @@ import {
   Typography,
 } from '@material-ui/core';
 
-export default () => (
-  <Typography variant="h4">Conference Room</Typography>
-);
-
-class ConferenceRoom {
-  
+interface IProps {
+  room: string
 }
+
+
+interface IState {
+  participants: string[]
+}
+class ConferenceRoom extends React.Component<IProps, IState> {
+  state: IState;
+  constructor(props: IProps) {
+    super(props)
+    this.state = {
+      participants: []
+    }
+  }
+
+  render() {
+
+
+    return (
+      <div>room name</div>
+    )
+  }
+}
+
+export default ConferenceRoom
