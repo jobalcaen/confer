@@ -35,11 +35,6 @@ class VideoStream extends React.Component<IProps, {}> {
     }
   }
 
-  componentDidMount() {
-    console.log('did mount', this.props)
-
-  }
-
   render() {
       return (
         <video 
@@ -48,7 +43,7 @@ class VideoStream extends React.Component<IProps, {}> {
           className="stream"
         />
       )
-  
+
   }
 }
 
