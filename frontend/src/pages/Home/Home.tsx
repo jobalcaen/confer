@@ -3,22 +3,21 @@ import {
   Typography,
 } from '@material-ui/core';
 import { Redirect } from 'react-router';
+import { RouteComponentProps } from 'react-router-dom';
+
 
 interface IState {
   roomName: string,
   redirect: boolean
 }
 
-interface IProps {
-  roomName: string;
-}
-
 // https://itnext.io/how-to-properly-define-state-in-react-components-47544eb4c15d
 
-class Home extends React.Component<IProps, IState> {
+class Home extends React.Component<RouteComponentProps, IState> {
   state: IState;
-  constructor(props: IProps) {
+  constructor(props: RouteComponentProps) {
     super(props)
+
     this.state = { 
       roomName: this.createRandomRoomNameString(),
       redirect: false,
@@ -27,6 +26,8 @@ class Home extends React.Component<IProps, IState> {
     this.handleChange = this.handleChange.bind(this);
     this.handleGo = this.handleGo.bind(this);
     this.newRandomRoomName = this.newRandomRoomName.bind(this);
+    this.props.history.push('/')
+
   }
 
   createRandomRoomNameString(): string {
@@ -37,7 +38,7 @@ class Home extends React.Component<IProps, IState> {
     this.setState({roomName: this.createRandomRoomNameString() })
   }
 
-  handleGo(): void{
+  handleGo(): void {
     this.setState({redirect: true})
   }
 
@@ -45,11 +46,14 @@ class Home extends React.Component<IProps, IState> {
     this.setState({roomName: event.currentTarget.value});
   }
 
+
+
   render() {
+    console.log('this props', this.props)
+
     if (this.state.redirect === true) {
       return <Redirect to={`/${this.state.roomName}`} />
     }
-
     return (
       <form >
         <label>
@@ -57,7 +61,7 @@ class Home extends React.Component<IProps, IState> {
           <input type="text" value={this.state.roomName} onChange={this.handleChange} />
         </label>
         <input type="button" value="Go" onClick={this.handleGo}/>
-        <input type="button" value="New Room Name" onClick={this.newRandomRoomName}/>
+        <input type="button" value="New Room Name" onClick={this.newRandomRoomName} />
       </form>
     )
   }
