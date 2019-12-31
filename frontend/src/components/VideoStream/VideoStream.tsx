@@ -41,6 +41,7 @@ class VideoStream extends React.Component<IProps, {}> {
           autoPlay
           ref={this.videoRef}
           className="stream"
+          muted
         />
       )
 

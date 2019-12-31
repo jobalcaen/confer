@@ -4,18 +4,24 @@ import express, { Application } from "express";
 import * as path from 'path';
 
 
+interface Room {
+    name: string,
+    members: string[]
+}
+
 export class Server {
     private httpServer: HTTPServer
     private app: Application
     private io: SocketIOServer
     private readonly DEFAULT_PORT = 5000
-    private activeSockets: string[] = [];
+    private rooms: Room[] = []
 
 
     constructor() {
         this.initialize()
-        this.handleRoutes()
-        this.handleSocketConnection()
+
+        // this.handleRoutes()
+        // this.handleSocketConnection()
     }
 
     private initialize(): void {
@@ -26,45 +32,33 @@ export class Server {
         this.handleSocketConnection()
     }
 
-    private handleRoutes(): void {
-        this.app.get("/", (req, res) => {
-            res.send(`<h1>Hello World</h1>`)
-        })
-    }
-
     private handleSocketConnection(): void {
         this.io.on("connection", socket => {
             console.log("Socket connected.", socket.id)
+            const roomName = socket.handshake.query.room
 
-            const existingSocket = this.activeSockets.find(existingSocket => existingSocket === socket.id)
+            socket.join(roomName)
+            // this.handleRoomJoin(roomName, socket.id)
 
-            if (!existingSocket) {
-                this.activeSockets.push(socket.id)
+            // const roomMates = this.io.sockets.adapter.rooms[roomName].sockets
+            // const room = this.rooms.find(room => room.name === roomName)
 
-                // emit to the just connected user
-                socket.emit("update-user-list", {
-                    users: this.activeSockets.filter(
-                      existingSocket => existingSocket !== socket.id
-                    )
-                })
-                
-                // emit to all other connected users
-                socket.broadcast.emit("update-user-list", {
-                    users: [socket.id]
-                })
+            // give user list to sender
+            socket.emit('join-room', this.io.sockets.adapter.rooms[roomName].sockets)
 
-                socket.on("disconnect", () => {
-                    console.log('disconnect')
-                    this.activeSockets = this.activeSockets.filter(
-                      existingSocket => existingSocket !== socket.id
-                    )
+            // notifiy room mates that someone has joined the room (does not emit to sender)
+            socket.broadcast.to(roomName).emit('participant-joined', socket.id);
 
-                    socket.broadcast.emit("remove-user", {
-                      socketId: socket.id
-                    })
-                })
-            }
+
+            socket.on("disconnect", () => {
+                console.log(`${socket.id} leaving`)
+                socket.broadcast.to(roomName).emit('participant-left', socket.id);
+
+            })
+            
         })
+
+
     }
 
     public listen( callback: (port: number) => void): void {
@@ -77,4 +71,22 @@ export class Server {
     private configureApp(): void {
         this.app.use(express.static(path.join(__dirname, "../public")));
       }
+
+    
+    handleRoomJoin(roomName: string, socketId: string) {
+        const isNewRoom = this.rooms.find(room => room.name === roomName)
+        if(!isNewRoom) {
+            this.rooms.push({
+                name: roomName,
+                members: [socketId]
+            })
+        } else {
+            this.rooms.map((room) => {
+                if (room.name === roomName) {
+                    room.members.push(socketId)
+                }
+            })
+        }
+    }
+    
 }

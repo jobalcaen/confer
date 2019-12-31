@@ -1,10 +1,9 @@
 import React from 'react';
 import VideoStream from '../../components/VideoStream/VideoStream';
 import socketIOClient from "socket.io-client";
+import { BrowserRouterProps, RouteComponentProps } from 'react-router-dom';
 
-interface IProps {
-  room: string
-}
+interface IProps extends RouteComponentProps<any>{}
 
 interface IState {
   localStream: MediaStream | undefined,
@@ -39,35 +38,50 @@ class ConferenceRoom extends React.Component<IProps, IState> {
   componentDidMount() {
     this.getLocalVideoStream()
     const { endpoint } = this.state;
-    this.socket = socketIOClient(endpoint)
+    this.socket = socketIOClient(`${endpoint}`, {
+      query: {
+        room: this.props.match.params.roomname
+      }
+    })
     this.handleSocket(this.socket)
   }
   
   componentWillUnmount() {
-    console.log('leaving ', this.socket)
     if (this.socket) {
-      this.socket.disconnect()
+      this.socket.close()
     }
   }
 
   componentDidUpdate() {
-
+    console.log('participants', this.state.participants)
   }
 
-  handleSocket(socket: SocketIOClient.Socket) {
-    console.log('handle socket ', socket)
+  handleSocket(socket: SocketIOClient.Socket) {    
+    socket.on('participant-joined', (participant: string) => {
 
-    socket.on('update-user-list', (participantsList: any) => {
-      this.setState({participants: participantsList})
-    }
+      console.log('participant-joined')
+      this.setState({participants: [...this.state.participants, participant]})
+    })
 
-    )
+    socket.on('participant-left', (msg: string) => {
+      console.log('participant-left')
+      this.setState({participants: [...this.state.participants.filter(participant => participant !== msg)]})
+    })
+
+    socket.on('join-room', (participantsList: any) => {
+      // convert sockets keyval object to array
+      const participantsArr = Object.keys(participantsList)
+
+      console.log('update-user-list', participantsArr)
+      this.setState({participants: participantsArr})
+    })
+
+
   }
 
   
 
   render() {
-
     return( 
       <VideoStream stream={this.state.localStream}/>
     )
